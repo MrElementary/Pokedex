@@ -1,6 +1,10 @@
-package main
+package tests
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/MrElementary/Pokedex/utils"
+)
 
 func TestCleanInput(t *testing.T) {
 	type testCase struct {
@@ -33,7 +37,7 @@ func TestCleanInput(t *testing.T) {
 
 	// Compare length of output vs expected arrays
 	for _, c := range cases {
-		actual := cleanInput(c.input)
+		actual := utils.CleanInput(c.input)
 		if len(actual) != len(c.expected) {
 			t.Errorf("Lengths not matching = %v, should be %v", actual, c.expected)
 		}
