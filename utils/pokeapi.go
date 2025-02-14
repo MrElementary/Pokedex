@@ -17,6 +17,18 @@ func (c *Client) getMap(pageURL *string) (locations, error) {
 		url = *pageURL
 	}
 
+	// functionality to check if the getMap requests data we already have cached
+	// to return instead of using the API again
+	if val, ok := c.cache.Get(url); ok {
+		location_response := locations{}
+		err := json.Unmarshal(val, &location_response)
+		if err != nil {
+			return locations{}, err
+		}
+
+		return location_response, nil
+	}
+
 	// newrequest is used to "build" our request so that we can use it with c.httpClient.Do()
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -48,5 +60,6 @@ func (c *Client) getMap(pageURL *string) (locations, error) {
 		return locations{}, err
 	}
 
+	c.cache.Add(url, data)
 	return location_response, nil
 }
