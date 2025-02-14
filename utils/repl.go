@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
 )
@@ -18,6 +19,7 @@ type Config struct {
 	Pokeapiclient    Client
 	prevLocationsURL *string
 	nextLocationsURL *string
+	CaughtPokemon    map[string]Pokemon
 }
 
 // used to clean strings of clutter
@@ -87,6 +89,16 @@ func getCommands() map[string]cliCommand {
 			name:        "explore <location_name>",
 			description: "Explore the pokemon at the given location name",
 			callback:    exploreCallback,
+		},
+		"catch": {
+			name:        "catch <pokemon_name>",
+			description: "Make an attempt to try and catch the pokemon",
+			callback:    catchCallback,
+		},
+		"inspect": {
+			name:        "inspect <pokemon_name>",
+			description: "shows details about a caught pokemon",
+			callback:    catchCallback,
 		},
 	}
 }
@@ -169,3 +181,36 @@ func exploreCallback(c *Config, args ...string) error {
 	}
 	return nil
 }
+
+func catchCallback(c *Config, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("you must provide a pokemon name")
+	}
+
+	name := args[0]
+	pokemon, err := c.Pokeapiclient.getPokemon(name)
+
+	if err != nil {
+		return err
+	}
+
+	base_exp := pokemon.BaseExperience
+
+	exp_to_chance := int(float64(base_exp) / 255 * 100)
+	player_roll := rand.Intn(100)
+
+	fmt.Printf("Throwing a Pokeball at %s...\nYou need to roll above %d\nYou rolled %d\n", pokemon.Name, exp_to_chance, player_roll)
+
+	if player_roll <= exp_to_chance {
+		fmt.Printf("%s escaped!\n", pokemon.Name)
+		return nil
+	}
+	fmt.Printf("%s was caught!\n", pokemon.Name)
+
+	c.CaughtPokemon[pokemon.Name] = pokemon
+	return nil
+}
+
+// func inspectCallback(c *Config, args ...string) error {
+
+// }

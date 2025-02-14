@@ -11,6 +11,7 @@ import (
 func main() {
 	pokeClient := utils.NewClient(5*time.Second, time.Minute*5)
 	c := &utils.Config{
+		caughtPokemon: map[string]utils.Pokemon{},
 		Pokeapiclient: pokeClient,
 	}
 	utils.BeginRepl(c)
