@@ -11,7 +11,7 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*Config) error
+	callback    func(*Config, ...string) error
 }
 
 type Config struct {
@@ -42,9 +42,14 @@ func BeginRepl(c *Config) {
 		input_arr := CleanInput(input)
 		command_key := input_arr[0]
 
+		args := []string{}
+		if len(input_arr) > 1 {
+			args = input_arr[1:]
+		}
+
 		command, ok := getCommands()[command_key]
 		if ok {
-			err := command.callback(c)
+			err := command.callback(c, args...)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -78,18 +83,23 @@ func getCommands() map[string]cliCommand {
 			description: "Displays the previous 20 locations on the map",
 			callback:    mapbCallback,
 		},
+		"explore": {
+			name:        "explore <location_name>",
+			description: "Explore the pokemon at the given location name",
+			callback:    exploreCallback,
+		},
 	}
 }
 
 // exit the program with error code 0
-func exitCallback(c *Config) error {
+func exitCallback(c *Config, args ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
 // display all currently available commands
-func helpCallback(c *Config) error {
+func helpCallback(c *Config, args ...string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println()
 	fmt.Println("Valid commands:")
@@ -101,7 +111,7 @@ func helpCallback(c *Config) error {
 }
 
 // next 20 locations - map command
-func mapCallback(c *Config) error {
+func mapCallback(c *Config, args ...string) error {
 	locations_response, err := c.Pokeapiclient.getMap(c.nextLocationsURL)
 	if err != nil {
 		return err
@@ -120,7 +130,7 @@ func mapCallback(c *Config) error {
 }
 
 // previous 20 locations - mapb command
-func mapbCallback(c *Config) error {
+func mapbCallback(c *Config, args ...string) error {
 	if c.prevLocationsURL == nil {
 		return errors.New("you're on the first page")
 	}
@@ -135,6 +145,27 @@ func mapbCallback(c *Config) error {
 
 	for _, loc := range locations_response.Results {
 		fmt.Println(loc.Name)
+	}
+	return nil
+}
+
+// get all pokemon at the specific location name - explore command
+func exploreCallback(c *Config, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("you must provide a location name")
+	}
+
+	name := args[0]
+	location, err := c.Pokeapiclient.getSingleLocation(name)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Exploring %s...\n", location.Name)
+	fmt.Println("Found Pokemon: ")
+	for _, enc := range location.PokemonEncounters {
+		fmt.Printf(" - %s\n", enc.Pokemon.Name)
 	}
 	return nil
 }
