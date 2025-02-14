@@ -100,6 +100,11 @@ func getCommands() map[string]cliCommand {
 			description: "shows details about a caught pokemon",
 			callback:    inspectCallback,
 		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "shows all pokemon that's been caught",
+			callback:    pokedexCallback,
+		},
 	}
 }
 
@@ -231,6 +236,21 @@ func inspectCallback(c *Config, args ...string) error {
 	fmt.Println("Types:")
 	for _, typeInfo := range pokemon.Types {
 		fmt.Println("  -", typeInfo.Type.Name)
+	}
+
+	return nil
+}
+
+func pokedexCallback(c *Config, args ...string) error {
+	if len(c.CaughtPokemon) == 0 {
+		fmt.Printf("You haven't caught anything yet\n")
+		return nil
+	}
+
+	fmt.Println("Your Pokedex:")
+
+	for name := range c.CaughtPokemon {
+		fmt.Printf(" - %s\n", name)
 	}
 
 	return nil
