@@ -17,9 +17,9 @@ A command line REPL creation, simulating a Pokedex from the Pokemon series. It p
 
 Only Go used for this CLI application.
 
-- **Deployment**:
+## Deployment:
 
-  - No deployment required.
+- No deployment required.
 
 ## Try my app
 
